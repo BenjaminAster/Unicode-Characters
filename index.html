@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<meta name="color-scheme" content="dark" />
+
+	<link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/0/09/New_Unicode_logo.svg" />
+
+	<title>Unicode Characters</title>
+
+	<link rel="preload" as="fetch" crossorigin href="./data.txt" />
+	<link rel="manifest" href="./manifest.webmanifest" />
+	<link rel="apple-touch-icon" href="./icon.png" />
+
+	<style>
+		body {
+			font-family: sans-serif;
+			background: black;
+			margin: 0;
+			padding: .5rem;
+			gap: 1px;
+		}
+
+		x {
+			white-space: pre;
+			display: inline-block;
+			min-inline-size: 1.5em;
+			block-size: 1.5em;
+			text-align: center;
+			line-height: 1.7em;
+			margin: 1px;
+			background-color: #8883;
+		}
+
+		.renderModes {
+			margin-block: 1rem;
+			display: flex;
+			gap: .4rem;
+			flex-wrap: wrap;
+		}
+
+		.renderModes label input[type=radio]~span {
+			display: inline-block;
+			border-radius: .5rem;
+			cursor: pointer;
+			background-color: darkSlateBlue;
+			border: 1px solid transparent;
+			padding: .4rem .6rem;
+			color: white;
+		}
+
+		.renderModes label input[type=radio] {
+			position: absolute;
+			opacity: 0;
+			pointer-events: none;
+		}
+
+		.renderModes label input[type=radio]:checked~span {
+			background-color: slateBlue;
+			border-color: white;
+		}
+
+		.renderModes label input[type=radio]:focus-visible~span {
+			outline: 1px solid #888f;
+			outline-offset: 2px;
+		}
+
+		main:empty::before {
+			content: "loading...";
+		}
+
+	</style>
+
+	<script type="module">
+
+		navigator.serviceWorker?.register("./service-worker.js", { scope: "./", updateViaCache: "all" });
+
+		await new Promise((resolve) => {
+			navigator.serviceWorker.addEventListener("message", async (/** @type {MessageEvent} */ { data }) => {
+				if (data.message === "updateAvailable") {
+					console.log("update available");
+				}
+			});
+
+			{
+				const checkReadyState = async () => {
+					if (document.readyState === "complete" && navigator.onLine) {
+						resolve();
+						(await navigator.serviceWorker?.ready)?.active.postMessage({ message: "checkForUpdate" });
+					}
+				};
+				checkReadyState();
+				document.addEventListener("readystatechange", checkReadyState);
+			}
+		});
+
+		const data = (await(await window.fetch("./data.txt")).text()).split("\n").map((line) => line.split(";").slice(0, 2));
+
+		const renderCharacters = async (/** @type {string} */ characterMode) => {
+			const mainEl = document.querySelector("main");
+			mainEl.innerHTML = "";
+
+			for (let i = 0x20; i < data.length;) {
+				const documentFragment = new DocumentFragment();
+
+				innerLoop: for (let j = 0; j < 0x1_000; j++) {
+					if (i >= data.length) {
+						break innerLoop;
+					}
+
+					const el = document.createElement('x');
+
+					// el.textContent = `${String.fromCodePoint(i)}\ufe0e`;
+					// el.textContent = String.fromCodePoint(i);
+					// el.title = `0x${i.toString(16)}`;
+
+					el.textContent = String.fromCodePoint(window.parseInt(data[i][0], 16)) + (
+						characterMode === "symbol" ? "\ufe0e" : characterMode === "emoji" ? "\ufe0f" : ""
+					);
+					el.title = `U+${data[i][0]}: ${data[i][1].toLowerCase()}`;
+
+					documentFragment.appendChild(el);
+					i++;
+				}
+
+				mainEl.appendChild(documentFragment);
+
+				await new Promise((resolve) => setTimeout(resolve));
+			}
+		};
+
+		for (const characterMode of ["normal", "symbol", "emoji"]) {
+			document.querySelector(`[data-render=${characterMode}]`).addEventListener("change", () => {
+				renderCharacters(characterMode);
+			});
+		}
+
+		renderCharacters("normal");
+
+	</script>
+</head>
+
+<body>
+	<h2>Unicode Caracters</h2>
+
+	<div class="renderModes">
+		<label data-render="normal">
+			<input type="radio" name="renderMode" checked />
+			<span>default character rendering</span>
+		</label>
+
+		<label data-render="symbol"
+			title="appends the U+FE0E variation selector to every character, which forces the character to be displayed as text">
+			<input type="radio" name="renderMode" />
+			<span>render characters as text</span>
+		</label>
+
+		<label data-render="emoji"
+			title="appends the U+FE0F variation selector to every character, which forces the character to be displayed as an emoji">
+			<input type="radio" name="renderMode" />
+			<span>render characters as emoji</span>
+		</label>
+	</div>
+
+	<main></main>
+</body>
+
+</html>

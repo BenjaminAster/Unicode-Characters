@@ -1,0 +1,13 @@
+{
+	"short_name": "Unicode Characters",
+	"start_url": "./",
+	"scope": "./",
+	"display": "standalone",
+	"icons": [
+		{
+			"src": "./icon.png",
+			"sizes": "512x512",
+			"purpose": "maskable any"
+		}
+	]
+}
