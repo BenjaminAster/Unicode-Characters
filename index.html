@@ -4,34 +4,74 @@
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<meta name="color-scheme" content="dark" />
+	<meta name="description" content="A simple overview of all Unicode characters." />
+	<meta name="author" content="Benjamin Aster" />
+	<meta name="repository" content="https://github.com/BenjaminAster/Unicode-Characters" />
+	<meta property="og:image" content="https://benjaminaster.com/unicode/icon.png" />
 
 	<link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/0/09/New_Unicode_logo.svg" />
 
 	<title>Unicode Characters</title>
 
-	<link rel="preload" as="fetch" crossorigin href="./data.txt" />
-	<link rel="manifest" href="./manifest.webmanifest" />
-	<link rel="apple-touch-icon" href="./icon.png" />
+	<link rel="preload" as="fetch" crossorigin href="./UnicodeData.txt" />
+	<link rel="preload" as="fetch" crossorigin href="./emoji-sequences.txt" />
+	<link rel="preload" as="fetch" crossorigin href="./emoji-zwj-sequences.txt" />
+	<link rel="manifest" href="./app.webmanifest" />
 
 	<style>
-		body {
-			font-family: sans-serif;
-			background: black;
-			margin: 0;
-			padding: .5rem;
-			gap: 1px;
+		:root {
+			font-family: "Arial", "Segoe UI Emoji", system-ui, sans-serif;
+			color-scheme: dark light;
+			overflow-wrap: break-word;
+			line-height: 1.3;
+			tab-size: 4;
+			-webkit-text-size-adjust: none;
+			text-size-adjust: none;
+			-webkit-tap-highlight-color: transparent;
 		}
 
-		x {
+		body {
+			box-sizing: border-box;
+			overflow-x: hidden;
+			margin: 0;
+			padding: 2px;
+		}
+
+		ul.list {
+			/* display: grid; */
+			display: flex;
+			flex-wrap: wrap;
+			gap: 1px;
+			/* grid-template-columns: repeat(auto-fill, minmax(1.5rem, 1fr)); */
+			position: relative;
+			font-size: 1.1rem;
+			line-height: 1.7;
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+
+		ul.list > li {
+			flex-grow: 0;
+			flex-shrink: 0;
+			flex-basis: auto;
 			white-space: pre;
-			display: inline-block;
-			min-inline-size: 1.5em;
+			display: block;
+			min-inline-size: 1.6em;
+			padding-inline: .2em;
 			block-size: 1.5em;
+			box-sizing: border-box;
 			text-align: center;
-			line-height: 1.7em;
-			margin: 1px;
-			background-color: #8883;
+			/* background-color: #8883; */
+			/* border-radius: .2rem; */
+			outline: 1px solid #555;
+			/* content-visibility: auto; */
+		}
+
+		@media (prefers-color-scheme: light) {
+			ul.list > li {
+				outline-color: #aaa;
+			}
 		}
 
 		.renderModes {
@@ -68,82 +108,29 @@
 		}
 
 		main:empty::before {
+			display: block;
 			content: "loading...";
+			position: absolute;
 		}
 
 	</style>
 
-	<script type="module">
-
-		navigator.serviceWorker?.register("./service-worker.js", { scope: "./", updateViaCache: "all" });
-
-		await new Promise((resolve) => {
-			navigator.serviceWorker.addEventListener("message", async (/** @type {MessageEvent} */ { data }) => {
-				if (data.message === "updateAvailable") {
-					console.log("update available");
-				}
-			});
-
-			{
-				const checkReadyState = async () => {
-					if (document.readyState === "complete" && navigator.onLine) {
-						resolve();
-						(await navigator.serviceWorker?.ready)?.active.postMessage({ message: "checkForUpdate" });
-					}
-				};
-				checkReadyState();
-				document.addEventListener("readystatechange", checkReadyState);
-			}
-		});
-
-		const data = (await(await window.fetch("./data.txt")).text()).split("\n").map((line) => line.split(";").slice(0, 2));
-
-		const renderCharacters = async (/** @type {string} */ characterMode) => {
-			const mainEl = document.querySelector("main");
-			mainEl.innerHTML = "";
-
-			for (let i = 0x20; i < data.length;) {
-				const documentFragment = new DocumentFragment();
-
-				innerLoop: for (let j = 0; j < 0x1_000; j++) {
-					if (i >= data.length) {
-						break innerLoop;
-					}
-
-					const el = document.createElement('x');
-
-					// el.textContent = `${String.fromCodePoint(i)}\ufe0e`;
-					// el.textContent = String.fromCodePoint(i);
-					// el.title = `0x${i.toString(16)}`;
-
-					el.textContent = String.fromCodePoint(window.parseInt(data[i][0], 16)) + (
-						characterMode === "symbol" ? "\ufe0e" : characterMode === "emoji" ? "\ufe0f" : ""
-					);
-					el.title = `U+${data[i][0]}: ${data[i][1].toLowerCase()}`;
-
-					documentFragment.appendChild(el);
-					i++;
-				}
-
-				mainEl.appendChild(documentFragment);
-
-				await new Promise((resolve) => setTimeout(resolve));
-			}
-		};
-
-		for (const characterMode of ["normal", "symbol", "emoji"]) {
-			document.querySelector(`[data-render=${characterMode}]`).addEventListener("change", () => {
-				renderCharacters(characterMode);
-			});
-		}
-
-		renderCharacters("normal");
-
-	</script>
+	<script type="module" src="./script.js"></script>
 </head>
 
 <body>
 	<h2>Unicode Caracters</h2>
+
+	<ul>
+		<li>Human-readable list: <a href="https://unicode.org/Public/draft/UCD/ucd/NamesList.txt">unicode.org/Public/draft/UCD/ucd/NamesList.txt</a></li>
+		<li>Machine-readable list: <a href="https://unicode.org/Public/draft/UCD/ucd/UnicodeData.txt">unicode.org/Public/draft/UCD/ucd/UnicodeData.txt</a></li>
+		<li>Uppercase/Lowercase mappings: <a href="https://unicode.org/Public/draft/UCD/ucd/CaseFolding.txt">unicode.org/Public/draft/UCD/ucd/CaseFolding.txt</a></li>
+		<li>Blocks (character categories): <a href="https://unicode.org/Public/draft/UCD/ucd/Blocks.txt">unicode.org/Public/draft/UCD/ucd/Blocks.txt</a></li>
+		<li>Scripts: <a href="https://unicode.org/Public/draft/UCD/ucd/Scripts.txt">unicode.org/Public/draft/UCD/ucd/Scripts.txt</a></li>
+		<li>Emojis: <a href="https://unicode.org/Public/draft/emoji/emoji-sequences.txt">unicode.org/Public/draft/emoji/emoji-sequences.txt</a></li>
+		<li>Emoji Zero-Width-Joiner sequences: <a href="https://unicode.org/Public/draft/emoji/emoji-zwj-sequences.txt">unicode.org/Public/draft/emoji/emoji-zwj-sequences.txt</a></li>
+		<li>Directory with all files: <a href="https://unicode.org/Public/draft/">unicode.org/Public/draft/</a></li>
+	</ul>
 
 	<div class="renderModes">
 		<label data-render="normal">
@@ -164,7 +151,7 @@
 		</label>
 	</div>
 
-	<main></main>
+	<ul class="list"></ul>
 </body>
 
 </html>
