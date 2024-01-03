@@ -1,29 +1,11 @@
 
-// navigator.serviceWorker?.register("./service-worker.js", { scope: "./", updateViaCache: "all" });
+/// <reference types="better-typescript" />
 
-{
-	navigator.serviceWorker.addEventListener("message", async (/** @type {MessageEvent} */ { data }) => {
-		if (data.message === "updateAvailable") {
-			console.log("update available");
-		}
-	});
-
-	{
-		const checkReadyState = async () => {
-			if (document.readyState === "complete" && navigator.onLine) {
-				(await navigator.serviceWorker?.ready)?.active.postMessage({ message: "checkForUpdate" });
-			}
-		};
-		checkReadyState();
-		document.addEventListener("readystatechange", checkReadyState);
-	}
-}
-
-const lines = (await (await window.fetch("./UnicodeData.txt")).text()).split("\n"); // https://unicode.org/Public/draft/UCD/ucd/UnicodeData.txt
+const lines = (await (await self.fetch(import.meta.resolve("./data/UnicodeData.txt"))).text()).split("\n"); // https://unicode.org/Public/draft/UCD/ucd/UnicodeData.txt
 const zwjSequencesLines = (
-	await (await window.fetch("./emoji-sequences.txt")).text()
-	+ await (await window.fetch("./emoji-zwj-sequences.txt")).text()
-).split("\n"); // https://unicode.org/Public/draft/emoji/emoji-zwj-sequences.txt
+	await (await self.fetch(import.meta.resolve("./data/emoji-sequences.txt"))).text()
+	+ await (await self.fetch(import.meta.resolve("./data/emoji-zwj-sequences.txt"))).text()
+).split("\n"); // https://unicode.org/Public/draft/emoji/
 
 const renderCharacters = async (/** @type {string} */ characterMode) => {
 	const mainEl = document.querySelector("ul.list");
@@ -101,9 +83,9 @@ const renderCharacters = async (/** @type {string} */ characterMode) => {
 			const line = zwjSequencesLines[i].split("#")[0].trim();
 			let data = line.split(";");
 			if (data.length < 3) continue innerLoop;
-			const codePoints = data[0].trim().split(" ").map((string) => window.parseInt(string, 16));
 			const typeField = data[1].trim();
 			if (typeField === "Basic_Emoji") continue innerLoop;
+			const codePoints = data[0].trim().split(" ").map((string) => self.parseInt(string, 16));
 			const description = data[2].trim();
 
 			addCharacter(codePoints, description, documentFragment);
