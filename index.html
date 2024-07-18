@@ -6,7 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<meta name="description" content="A simple overview of all Unicode characters." />
 	<meta name="author" content="Benjamin Aster" />
-	<meta name="repository" content="https://github.com/BenjaminAster/Unicode-Characters" />
+	<link rel="code-repository" href="https://github.com/BenjaminAster/Unicode-Characters" />
 	<meta property="og:image" content="https://benjaminaster.com/unicode/icon.png" />
 
 	<link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/0/09/New_Unicode_logo.svg" />
@@ -16,6 +16,7 @@
 	<link rel="preload" as="fetch" crossorigin href="./data/UnicodeData.txt" />
 	<link rel="preload" as="fetch" crossorigin href="./data/emoji-sequences.txt" />
 	<link rel="preload" as="fetch" crossorigin href="./data/emoji-zwj-sequences.txt" />
+	<link rel="preload" as="fetch" crossorigin href="./data/cldr-annotations.json" />
 	<link rel="manifest" href="./app.webmanifest" />
 
 	<style>
@@ -74,14 +75,15 @@
 			}
 		}
 
-		.renderModes {
+		#render-mode {
 			margin-block: 1rem;
 			display: flex;
 			gap: .4rem;
 			flex-wrap: wrap;
+			border: none;
 		}
 
-		.renderModes label input[type=radio]~span {
+		#render-mode label input[type=radio]~span {
 			display: inline-block;
 			border-radius: .5rem;
 			cursor: pointer;
@@ -91,18 +93,18 @@
 			color: white;
 		}
 
-		.renderModes label input[type=radio] {
+		#render-mode label input[type=radio] {
 			position: absolute;
 			opacity: 0;
 			pointer-events: none;
 		}
 
-		.renderModes label input[type=radio]:checked~span {
+		#render-mode label input[type=radio]:checked~span {
 			background-color: slateBlue;
 			border-color: white;
 		}
 
-		.renderModes label input[type=radio]:focus-visible~span {
+		#render-mode label input[type=radio]:focus-visible~span {
 			outline: 1px solid #888f;
 			outline-offset: 2px;
 		}
@@ -111,6 +113,31 @@
 			display: block;
 			content: "loading...";
 			position: absolute;
+		}
+
+		dl, dt, dd {
+			all: unset;
+		}
+
+		#character-info {
+			position: fixed;
+			inset-block-start: 0;
+			inset-inline-end: 0;
+			margin: 1rem;
+			background: Canvas;
+			padding: 1rem;
+			border: 1px solid #8888;
+			border-radius: .3rem;
+			z-index: 1;
+
+			& dt {
+				vertical-align: top;
+			}
+
+			& [itemprop] {
+				display: inline flow-root;
+				white-space-collapse: preserve;
+			}
 		}
 
 	</style>
@@ -132,24 +159,46 @@
 		<li>Directory with all files: <a href="https://unicode.org/Public/">unicode.org/Public/</a></li>
 	</ul>
 
-	<div class="renderModes">
-		<label data-render="normal">
-			<input type="radio" name="renderMode" checked />
-			<span>default character rendering</span>
+	<fieldset id="render-mode">
+		<label>
+			<input type="radio" name="renderMode" checked value="all-normal" />
+			<span>all characters (default)</span>
 		</label>
 
-		<label data-render="symbol"
+		<label
 			title="appends the U+FE0E variation selector to every character, which forces the character to be displayed as text">
-			<input type="radio" name="renderMode" />
-			<span>render characters as text</span>
+			<input type="radio" name="renderMode" value="all-text" />
+			<span>All characters (force text rendering)</span>
 		</label>
 
-		<label data-render="emoji"
+		<label
 			title="appends the U+FE0F variation selector to every character, which forces the character to be displayed as an emoji">
-			<input type="radio" name="renderMode" />
-			<span>render characters as emoji</span>
+			<input type="radio" name="renderMode" value="all-emoji" />
+			<span>All characters (force emoji rendering)</span>
 		</label>
-	</div>
+
+		<label>
+			<input type="radio" name="renderMode" value="emojis" />
+			<span>Emojis</span>
+		</label>
+	</fieldset>
+
+	<aside id="character-info">
+		<dl>
+			<div>
+				<dt>Name:</dt>
+				<dd itemprop="name"></dd>
+			</div>
+			<div>
+				<dt>Code Points:</dt>
+				<dd itemprop="code-points"></dd>
+			</div>
+			<div>
+				<dt>Annotation:</dt>
+				<dd itemprop="annotation"></dd>
+			</div>
+		</dl>
+	</aside>
 
 	<ul class="list"></ul>
 </body>
